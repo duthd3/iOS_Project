@@ -22,7 +22,7 @@ class ChatViewController: UIViewController {
         super.viewDidLoad()
         tableView.dataSource = self
         
-        title = K.appName
+        title = "⚡️FlashChat"
         navigationItem.hidesBackButton = true
         
         tableView.register(UINib(nibName: K.cellNibName, bundle: nil), forCellReuseIdentifier: K.cellIdentifier)
