@@ -7,4 +7,5 @@ target 'Todoey' do
 
   # Pods for Todoey
 pod 'SnapKit'
+pod 'SwipeCellKit'
 end

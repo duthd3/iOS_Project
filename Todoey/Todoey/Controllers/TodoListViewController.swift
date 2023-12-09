@@ -64,7 +64,6 @@ class TodoListViewController: UITableViewController {
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
         saveItems() // save & commit 필요(영구 컨테이너) => reload()까지
-
         
         tableView.deselectRow(at: indexPath, animated: true)
     }

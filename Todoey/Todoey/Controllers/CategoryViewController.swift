@@ -8,8 +8,7 @@
 
 import UIKit
 import CoreData
-import SnapKit
-
+import SwipeCellKit
 
 class CategoryViewController: UITableViewController {
 
@@ -35,8 +34,9 @@ class CategoryViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let color = [UIColor(red: 24/250, green: 130/250, blue: 251/250, alpha: 1), UIColor(red: 253/250, green: 127/250, blue: 79/250, alpha: 1), UIColor(red: 16/250, green: 175/250, blue: 133/250, alpha: 1), UIColor(red: 246/250, green: 182/250, blue: 90/250, alpha: 1)]
-        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath) as! SwipeTableViewCell
         cell.textLabel?.text = categories[indexPath.row].name
+        cell.delegate = self
         cell.backgroundColor = color[indexPath.row]
         cell.selectionStyle = .none
         
@@ -109,10 +109,38 @@ class CategoryViewController: UITableViewController {
         }
         present(alert, animated: true, completion: nil)
     }
+
+}
+
+//MARK: - Swipe Cell Delegate Methods
+
+extension CategoryViewController: SwipeTableViewCellDelegate {
+    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath, for orientation: SwipeCellKit.SwipeActionsOrientation) -> [SwipeCellKit.SwipeAction]? {
+        guard orientation == .right else { return nil }
+        
+        let deleteAction = SwipeAction(style: .destructive, title: "Delete") { [self] action, indexPath in
+            print("Item Delete")
+            self.context.delete(self.categories[indexPath.row])
+            self.categories.remove(at: indexPath.row)
+            do {
+                try context.save()
+            }catch {
+                print("Error saving category \(error)")
+            }
+            // save & commit 필요(영구 컨테이너)
+            tableView.deselectRow(at: indexPath, animated: true)
+        }
+        
+        deleteAction.image = UIImage(named: "Trash Icon")
+        return [deleteAction]
+    }
     
-   
-    
-   
-    
-    
+    func tableView(_ tableView: UITableView, editActionsOptionsForRowAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> SwipeOptions {
+        var options = SwipeTableOptions()
+        options.expansionStyle = .destructive
+        tableView.deselectRow(at: indexPath, animated: true)
+       
+        return options
+    }
+        
 }
