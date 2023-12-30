@@ -8,10 +8,12 @@
 
 import UIKit
 import CoreData
+import ChameleonFramework
 
-class TodoListViewController: UITableViewController {
+class TodoListViewController: SwipeTableViewController {
     var titleLabel: String = "Todo"
     
+    @IBOutlet weak var searchBar: UISearchBar!
     
     var itemArray = [Item]()
     var selectedCategory: Category? {
@@ -33,7 +35,14 @@ class TodoListViewController: UITableViewController {
         navigationItem.standardAppearance = appearance
         navigationItem.scrollEdgeAppearance = appearance
         
-       
+        tableView.separatorStyle = .none
+        
+        title = selectedCategory!.name
+        
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+
     }
     
     //MARK: - Tableview Datasource Methods
@@ -42,16 +51,23 @@ class TodoListViewController: UITableViewController {
         return itemArray.count
     }
     
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 100
+    }
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
   
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         let item = itemArray[indexPath.row]
         
         cell.textLabel?.text = item.title
-        
+        cell.backgroundColor = UIColor(hexString: selectedCategory!.color!)?.darken(byPercentage:
+            CGFloat(indexPath.row) / CGFloat(itemArray.count)
+        )
         cell.accessoryType = item.done ? .checkmark : .none
+        cell.textLabel?.textColor = ContrastColorOf(cell.backgroundColor!, returnFlat: true)
         
         return cell
     }
@@ -61,6 +77,7 @@ class TodoListViewController: UITableViewController {
         //context.delete(itemArray[indexPath.row]) //context는 임시공간(영구 데이터 소스에서 데이터 제거)
         //itemArray.remove(at: indexPath.row) //단지 테이블 뷰를 채우는 데 사용되는 itemArray 업데이트(테이블 뷰 데이터 소스 로드하는데 사용, 순서중요 먼저 데이터베이스 컨텍스트에서 삭제 후 테이블 뷰 item을 삭제한다.) => 이후 save & commit & reload 까지 해줘야함.
         
+        
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
         saveItems() // save & commit 필요(영구 컨테이너) => reload()까지
@@ -68,6 +85,18 @@ class TodoListViewController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
+    override func updateModel(at indexPath: IndexPath) {
+        
+        self.context.delete(self.itemArray[indexPath.row])
+        self.itemArray.remove(at: indexPath.row)
+        do {
+            try context.save()
+        }catch {
+            print("Error saving category \(error)")
+        }
+        // save & commit 필요(영구 컨테이너)
+        tableView.deselectRow(at: indexPath, animated: true)
+    }
     
 
     //MARK: - Add New Items
